@@ -16,8 +16,22 @@
 #include "rcc_registers.h"         // RCC register macros
 #include "gpio_registers.h"        // GPIO register macros
 #include "systick_registers.h"     // SysTick register macros
+#include "usart_registers.h"       // USART register macros
 #include "bare_systick.h"          // Bare-metal SysTick driver
 #include "bare_gpio.h"             // Bare-metal GPIO driver
+#include "bare_usart.h"            // Bare-metal USART driver
+
+/**
+ * @brief  Configure GPIO pin as output and enable SysTick interrupt.
+ *
+ * Initializes GPIOC Pin with push-pull output configuration,
+ * sets the output high initially, and configures the SysTick
+ * timer to fire periodically (approximately every 83ms).
+ *
+ * @param GPIOx   Pointer to GPIO peripheral (e.g., GPIOA, GPIOB, etc.)
+ * @param pin     GPIO pin number (0-15)
+ */
+void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
 
 /**
  * @brief  Application entry point.
@@ -31,6 +45,11 @@
 int main(void)
 {
     program_status_led(GPIOC, GPIO_PIN8); // Initialize LED GPIO and start SysTick timer
+
+    bare_usart_init();
+    bare_usart_send_string("\r\n>> Press any key to start...\r\n");
+    bare_usart_read_char();
+    bare_usart_send_string("Hello, World!\r\n");
 
     while (1)
         ; // Main loop does nothing; toggling handled in SysTick ISR
