@@ -192,4 +192,14 @@ void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin, GPIO_AFs_t AF);
  */
 void bare_gpio_enable_clock(GPIO_TypeDef *GPIOx);
 
+/**
+ * @brief  Enable RCC Clock for a given GPIO port
+ * @param  GPIOx: pointer to GPIO peripheral base address
+ * @param pin     GPIO pin number
+ * @return if LED on return 1 else 0
+ *
+ * @note   Must be called before accessing GPIO registers.
+ */
+int bare_gpio_check_state(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
+
 #endif /* BARE_GPIO_H_ */

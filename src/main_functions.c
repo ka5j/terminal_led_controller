@@ -64,7 +64,6 @@ void led2_init(void)
 {
     bare_gpio_AF(GPIOB, GPIO_PIN6, AF2);
     bare_tim2_5_PWM(TIM4);
-    bare_pwm_set_duty(TIM4, 100);
 }
 
 /*******************************************************************************************
@@ -98,7 +97,7 @@ void led1_process_cmd(const char *cmd)
     }
     else if (strcmp(cmd, "LED1 STATUS") == 0)
     {
-        /***********Incomplete************/
+        check_led1_state(GPIOC, GPIO_PIN5);
     }
     else
     {
@@ -145,4 +144,26 @@ void process_cmd(const char *cmd)
     }
 
     bare_usart_send_string("\r\n> "); // Prompt for next command
+}
+
+/**
+ * @brief  check status of LED1.
+ *
+ * @param GPIOx   Pointer to GPIO peripheral
+ * @param pin     GPIO pin number
+ * @details
+ * Parses recognized commands and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void check_led1_state(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
+{
+    int state = bare_gpio_check_state(GPIOC, GPIO_PIN5);
+    if (state)
+    {
+        bare_usart_send_string("\nLED1 ON\r");
+    }
+    else
+    {
+        bare_usart_send_string("\nLED1 OFF\r");
+    }
 }

@@ -116,4 +116,15 @@ void led3_process_cmd(const char *cmd);
  */
 void process_cmd(const char *cmd);
 
+/**
+ * @brief  check status of LED1.
+ *
+ * @param GPIOx   Pointer to GPIO peripheral
+ * @param pin     GPIO pin number
+ * @details
+ * Parses recognized commands and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void check_led1_state(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
+
 #endif /* MAIN_FUNCTIONS_H_ */
