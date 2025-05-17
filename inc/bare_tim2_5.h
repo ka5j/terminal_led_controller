@@ -24,10 +24,10 @@
  *******************************************************************************************/
 
 // Prescaler value to get 1 kHz timer tick from 16 MHz clock
-#define TIM2_5_1KHZ_PRESCALER 15999U
+#define TIM2_5_1KHZ_PRESCALER 15U
 
 // Auto-reload value for 1-second cycle at 1 kHz tick rate
-#define TIM2_5_1SEC_ARR 1000U
+#define TIM2_5_1SEC_ARR 999U
 
 /*******************************************************************************************
  * Enumerations for Timer Control
@@ -84,5 +84,20 @@ void bare_tim2_5_set(TIM2_5_TypeDef *TIMx);
  * @param TIMx Pointer to timer peripheral (e.g., TIM2, TIM3, etc.)
  */
 void bare_tim2_5_stop(TIM2_5_TypeDef *TIMx);
+
+/**
+ * @brief Set TIM2–TIM5 timer to PWM mode
+ *
+ * @param TIMx Pointer to timer peripheral (e.g., TIM2, TIM3, etc.)
+ */
+void bare_tim2_5_PWM(TIM2_5_TypeDef *TIMx);
+
+/**
+ * @brief Set duty cycle of TIM2–TIM5 timer in PWM mode
+ *
+ * @param TIMx Pointer to timer peripheral (e.g., TIM2, TIM3, etc.)
+ * @param percent Duty cycle percentage
+ */
+void bare_pwm_set_duty(TIM2_5_TypeDef *TIMx, uint8_t percent);
 
 #endif // BARE_TIM2_5_H_

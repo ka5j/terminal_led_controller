@@ -14,13 +14,17 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "stm32f446re_addresses.h" // STM32 base addresses
-#include "rcc_registers.h"         // RCC macros
-#include "gpio_registers.h"        // GPIO register structure
-#include "usart_registers.h"       // USART register structure
-#include "bare_systick.h"          // Bare-metal SysTick interface
-#include "bare_gpio.h"             // Bare-metal GPIO driver
-#include "bare_usart.h"            // Bare-metal USART driver
+#include "main_functions.h"
+#include "stm32f446re_addresses.h" // STM32 memory and base addresses
+#include "rcc_registers.h"         // RCC peripheral access macros
+#include "gpio_registers.h"        // GPIO register structure definitions
+#include "systick_registers.h"     // SysTick register access macros
+#include "usart_registers.h"       // USART register definitions
+#include "tim2_5_registers.h"      // TIM2-TIM5 register definitions
+#include "bare_systick.h"          // SysTick driver (bare-metal)
+#include "bare_gpio.h"             // GPIO driver (bare-metal)
+#include "bare_usart.h"            // USART2 driver (bare-metal)
+#include "bare_tim2_5.h"           // TIM2-TIM5 (bare-metal)
 
 /*******************************************************************************************
  * @brief   Initialize USART terminal interface
@@ -59,6 +63,8 @@ void led1_init(void)
 void led2_init(void)
 {
     bare_gpio_AF(GPIOB, GPIO_PIN6, AF2);
+    bare_tim2_5_PWM(TIM4);
+    bare_pwm_set_duty(TIM4, 100);
 }
 
 /*******************************************************************************************
@@ -132,6 +138,10 @@ void process_cmd(const char *cmd)
     else if (cmd[3] == '3')
     {
         led3_process_cmd(cmd); // Execute command
+    }
+    else
+    {
+        bare_usart_send_string("\nUNKNOWN COMMAND\r");
     }
 
     bare_usart_send_string("\r\n> "); // Prompt for next command

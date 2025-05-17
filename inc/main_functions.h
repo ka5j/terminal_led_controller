@@ -18,14 +18,19 @@
 #define MAIN_FUNCTIONS_H_
 
 #include <stdint.h>
+#include <string.h>
 
-#include "stm32f446re_addresses.h" // Base address definitions
+#include "main_functions.h"
+#include "stm32f446re_addresses.h" // STM32 memory and base addresses
 #include "rcc_registers.h"         // RCC peripheral access macros
-#include "gpio_registers.h"        // GPIO register definitions
+#include "gpio_registers.h"        // GPIO register structure definitions
+#include "systick_registers.h"     // SysTick register access macros
 #include "usart_registers.h"       // USART register definitions
-#include "bare_systick.h"          // SysTick driver interface
-#include "bare_gpio.h"             // GPIO driver interface
-#include "bare_usart.h"            // USART driver interface
+#include "tim2_5_registers.h"      // TIM2-TIM5 register definitions
+#include "bare_systick.h"          // SysTick driver (bare-metal)
+#include "bare_gpio.h"             // GPIO driver (bare-metal)
+#include "bare_usart.h"            // USART2 driver (bare-metal)
+#include "bare_tim2_5.h"           // TIM2-TIM5 (bare-metal)
 
 /*******************************************************************************************
  *                                       Macros

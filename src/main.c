@@ -22,9 +22,11 @@
 #include "gpio_registers.h"        // GPIO register structure definitions
 #include "systick_registers.h"     // SysTick register access macros
 #include "usart_registers.h"       // USART register definitions
+#include "tim2_5_registers.h"      // TIM2-TIM5 register definitions
 #include "bare_systick.h"          // SysTick driver (bare-metal)
 #include "bare_gpio.h"             // GPIO driver (bare-metal)
 #include "bare_usart.h"            // USART2 driver (bare-metal)
+#include "bare_tim2_5.h"           // TIM2-TIM5 (bare-metal)
 
 /*******************************************************************************************
  * @brief   Configure PC8 as output and enable SysTick interrupt for LED blinking.

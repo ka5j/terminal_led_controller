@@ -18,39 +18,6 @@
 /*******************************************************************************************
  *                               Internal Helper Functions
  *******************************************************************************************/
-/**
- *
- */
-static void set_gpio_AFR(TIM2_5_TypeDef *TIMx, GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
-{
-    if (pin <= 7)
-    {
-        if (TIMx == TIM2)
-        {
-            GPIOx->AFRL &= ~(0xF << (4 * pin)); // Clear previous AF
-            GPIOx->AFRL |= (0x1 << (4 * pin));  // Set AF1 (TIM2_CH1)
-        }
-        else
-        {
-            GPIOx->AFRL &= ~(0xF << (4 * pin)); // Clear previous AF
-            GPIOx->AFRL |= (0x2 << (4 * pin));  // Set AF1 (TIM2_CH1)
-        }
-    }
-
-    if (pin > 7)
-    {
-        if (TIMx == TIM2)
-        {
-            GPIOx->AFRH &= ~(0xF << ((4 * pin) - 32)); // Clear previous AF
-            GPIOx->AFRH |= (0x1 << ((4 * pin) - 32));  // Set AF1
-        }
-        else
-        {
-            GPIOx->AFRH &= ~(0xF << ((4 * pin) - 32)); // Clear previous AF
-            GPIOx->AFRH |= (0x2 << ((4 * pin) - 32));  // Set AF2
-        }
-    }
-}
 
 /**
  * @brief  Enable the RCC peripheral clock for the specified timer
@@ -184,4 +151,39 @@ void bare_tim2_5_stop(TIM2_5_TypeDef *TIMx)
     TIMx->CR1 &= ~(1 << 0);              // Disable counter
     bare_tim2_5_disable_interrupt(TIMx); // Disable NVIC interrupt
     bare_tim2_5_disable_clock(TIMx);     // Disable peripheral clock
+}
+
+/**
+ * @brief Set TIM2–TIM5 timer to PWM mode in channel 1
+ *
+ * @param TIMx Pointer to timer peripheral (e.g., TIM2, TIM3, etc.)
+ */
+void bare_tim2_5_PWM(TIM2_5_TypeDef *TIMx)
+{
+    bare_tim2_5_enable_clock(TIMx);
+    TIMx->PSC = TIM2_5_1KHZ_PRESCALER;
+    TIMx->ARR = TIM2_5_1SEC_ARR;
+    TIMx->CCMR1 &= ~(0x7 << 4); // Clear OC1M
+    TIMx->CCMR1 |= (0x6 << 4);  // OC1M = 110 (PMW mode 1)
+    TIMx->CCMR1 |= (1 << 3);    // preload enable
+    TIMx->CCR1 = 0;             // Initial duty cycle 0%
+    TIMx->CCER |= (1 << 0);     // Enable channel 1 output
+    TIMx->CR1 |= (1 << 7);
+    TIMx->EGR |= (1 << 0); // Generate update event
+    TIMx->CR1 |= (1 << 0); // start timer
+}
+
+/**
+ * @brief Set duty cycle of TIM2–TIM5 timer in PWM mode
+ *
+ * @param TIMx Pointer to timer peripheral (e.g., TIM2, TIM3, etc.)
+ * @param percent Duty cycle percentage
+ */
+void bare_pwm_set_duty(TIM2_5_TypeDef *TIMx, uint8_t percent)
+{
+    if (percent > 100)
+    {
+        percent = 100;
+    }
+    TIMx->CCR1 = (TIMx->ARR * percent) / 100;
 }

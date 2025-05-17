@@ -40,14 +40,8 @@ void bare_usart_init(void)
     RCC->APB1ENR |= (1 << 17); // USART2 clock enable
 
     /* 2. Configure PA2 and PA3 to alternate function mode (AF7 = USART2) */
-    bare_gpio_AF(GPIOA, 2);
-    bare_gpio_AF(GPIOA, 3);
-
-    GPIOA->AFRL &= ~(0xF << 8); // Clear AF bits for PA2
-    GPIOA->AFRL |= (0x7 << 8);  // AF7 for PA2 (USART2_TX)
-
-    GPIOA->AFRL &= ~(0xF << 12); // Clear AF bits for PA3
-    GPIOA->AFRL |= (0x7 << 12);  // AF7 for PA3 (USART2_RX)
+    bare_gpio_AF(GPIOA, 2, AF7);
+    bare_gpio_AF(GPIOA, 3, AF7);
 
     /* 3. Disable USART before configuration */
     USART2->CR1 &= ~(1 << 13); // UE = 0
