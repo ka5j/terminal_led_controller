@@ -56,6 +56,15 @@ void usart_terminal_init(void);
 void led1_init(void);
 
 /**
+ * @brief  Initialize user LED on PC4 as GPIO output.
+ *
+ * @details
+ * Configures GPIOC Pin 4 as push-pull output. This pin can be controlled via PWM
+ * via command or from within your embedded application logic.
+ */
+void led2_init(void);
+
+/**
  * @brief  Process and execute received UART command.
  *
  * @param  cmd  Null-terminated string received from terminal.

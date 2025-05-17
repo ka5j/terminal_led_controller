@@ -56,8 +56,11 @@ int main(void)
     // Initialize PC8 LED and start periodic toggling via SysTick
     program_status_led(GPIOC, GPIO_PIN8);
 
-    // Optional: Initialize an additional LED or user I/O
+    // Initialize an additional LED1 connected to PC5
     led1_init();
+
+    // Initialize an additional LED2 connected to PC4
+    led2_init();
 
     // Buffer to store UART command input
     char cmd_buffer[CMD_BUFFER_SIZE];
