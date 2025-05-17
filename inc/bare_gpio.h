@@ -59,6 +59,29 @@ typedef enum
 } GPIO_Pins_t;
 
 /**
+ * @brief Alternate functions
+ */
+typedef enum
+{
+    AF0 = 0x0U,
+    AF1 = 0x1U,
+    AF2 = 0x2U,
+    AF3 = 0x3U,
+    AF4 = 0x4U,
+    AF5 = 0x5U,
+    AF6 = 0x6U,
+    AF7 = 0x7U,
+    AF8 = 0x8U,
+    AF9 = 0x9U,
+    AF10 = 0xAU,
+    AF11 = 0xBU,
+    AF12 = 0xCU,
+    AF13 = 0xDU,
+    AF14 = 0xEU,
+    AF15 = 0xFU
+} GPIO_AFs_t;
+
+/**
  * @brief GPIO Pin States
  */
 typedef enum
@@ -156,8 +179,9 @@ void bare_gpio_toggle(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
  *
  * @param GPIOx   Pointer to GPIO peripheral
  * @param pin     GPIO pin number
+ * @param AF      The alternate function number (0-15)
  */
-void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
+void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin, GPIO_AFs_t AF);
 
 /**
  * @brief  Enable RCC Clock for a given GPIO port

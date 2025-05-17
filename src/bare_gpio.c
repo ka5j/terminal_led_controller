@@ -144,8 +144,9 @@ void bare_gpio_toggle(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
  *
  * @param GPIOx   Pointer to GPIO peripheral
  * @param pin     GPIO pin number
+ * @param AF      The alternate function number (0-15)
  */
-void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
+void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin, GPIO_AFs_t AF)
 {
     /* Enable the clock for GPIO port */
     bare_gpio_enable_clock(GPIOx);
@@ -163,4 +164,15 @@ void bare_gpio_AF(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
 
     /* 4. Configure pull-up/pull-down resistors */
     GPIOx->PUPDR &= ~(0x3U << (pin * 2)); // no pull-up/pull-down
+
+    if (pin <= 7)
+    {
+        GPIOx->AFRL &= ~(0xF << pin * 4);
+        GPIOx->AFRL |= (AF << pin * 4);
+    }
+    else
+    {
+        GPIOx->AFRH &= ~(0xF << ((pin * 4) - 32));
+        GPIOx->AFRH |= (AF << ((pin * 4) - 32));
+    }
 }

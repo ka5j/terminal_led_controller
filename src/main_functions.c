@@ -50,16 +50,15 @@ void led1_init(void)
 }
 
 /*******************************************************************************************
- * @brief   Initialize user LED on PC4 as GPIO output.
+ * @brief   Initialize user LED on PB6 as GPIO lternate function for TIM4 Channel 1 PWM.
  *
  * @details
- * Configures GPIOC Pin 4 as push-pull output. This pin can be controlled via PWM
+ * Configures GPIOB Pin 6 as alternate function (AF2). This pin can be controlled via PWM
  * via command or from within your embedded application logic.
  *******************************************************************************************/
 void led2_init(void)
 {
-    bare_gpio_init(GPIOC, GPIO_PIN4, GPIO_MODE_OUTPUT,
-                   GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
+    bare_gpio_AF(GPIOB, GPIO_PIN6, AF2);
 }
 
 /*******************************************************************************************
@@ -132,7 +131,7 @@ void process_cmd(const char *cmd)
     }
     else if (cmd[3] == '3')
     {
-        led1_process_cmd(cmd); // Execute command
+        led3_process_cmd(cmd); // Execute command
     }
 
     bare_usart_send_string("\r\n> "); // Prompt for next command
