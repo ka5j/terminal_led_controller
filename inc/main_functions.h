@@ -76,4 +76,39 @@ void led2_init(void);
  */
 void led1_process_cmd(const char *cmd);
 
+/**
+ * @brief  Process and execute received UART command.
+ *
+ * @param  cmd  Null-terminated string received from terminal.
+ *
+ * @details
+ * Parses recognized commands like "LED ON", "LED OFF", or "STATUS"
+ * and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void led2_process_cmd(const char *cmd);
+
+/**
+ * @brief  Process and execute received UART command.
+ *
+ * @param  cmd  Null-terminated string received from terminal.
+ *
+ * @details
+ * Parses recognized commands like "LED ON", "LED OFF", or "STATUS"
+ * and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void led3_process_cmd(const char *cmd);
+
+/**
+ * @brief  Process and execute received UART command.
+ *
+ * @param  cmd  Null-terminated string received from terminal.
+ *
+ * @details
+ * Parses recognized commands and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void process_cmd(const char *cmd);
+
 #endif /* MAIN_FUNCTIONS_H_ */

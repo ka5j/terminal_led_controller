@@ -63,7 +63,7 @@ void led2_init(void)
 }
 
 /*******************************************************************************************
- * @brief   Parse and execute UART commands
+ * @brief   Parse and execute UART commands for LED1
  *
  * @param   cmd   Null-terminated command string from terminal input
  *
@@ -91,8 +91,49 @@ void led1_process_cmd(const char *cmd)
         bare_gpio_toggle(GPIOC, GPIO_PIN5);
         bare_usart_send_string("\nLED1 TOGGLED\r");
     }
+    else if (strcmp(cmd, "LED1 STATUS") == 0)
+    {
+        /***********Incomplete************/
+    }
     else
     {
         bare_usart_send_string("\nUNKNOWN COMMAND\r");
     }
+}
+
+void led2_process_cmd(const char *cmd)
+{
+    /***********Incomplete************/
+}
+
+void led3_process_cmd(const char *cmd)
+{
+    /***********Incomplete************/
+}
+
+/**
+ * @brief  Process and execute received UART command.
+ *
+ * @param  cmd  Null-terminated string received from terminal.
+ *
+ * @details
+ * Parses recognized commands and performs the corresponding hardware control. Unrecognized
+ * commands print a default error message.
+ */
+void process_cmd(const char *cmd)
+{
+    if (cmd[3] == '1')
+    {
+        led1_process_cmd(cmd); // Execute command
+    }
+    else if (cmd[3] == '2')
+    {
+        led2_process_cmd(cmd); // Execute command
+    }
+    else if (cmd[3] == '3')
+    {
+        led1_process_cmd(cmd); // Execute command
+    }
+
+    bare_usart_send_string("\r\n> "); // Prompt for next command
 }

@@ -78,10 +78,9 @@ int main(void)
         // On Enter key (CR or LF), terminate string and parse command
         if (c == '\r' || c == '\n')
         {
-            cmd_buffer[cmd_index] = '\0';     // Null-terminate command string
-            led1_process_cmd(cmd_buffer);     // Execute command
-            cmd_index = 0;                    // Reset buffer index
-            bare_usart_send_string("\r\n> "); // Prompt for next command
+            cmd_buffer[cmd_index] = '\0'; // Null-terminate command string
+            process_cmd(cmd_buffer);      // Figure out what the command is
+            cmd_index = 0;                // Reset buffer index
         }
         else if (cmd_index < CMD_BUFFER_SIZE - 1)
         {
