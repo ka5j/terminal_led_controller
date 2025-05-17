@@ -161,8 +161,7 @@ void bare_tim2_5_stop(TIM2_5_TypeDef *TIMx)
 void bare_tim2_5_PWM(TIM2_5_TypeDef *TIMx)
 {
     bare_tim2_5_enable_clock(TIMx);
-    TIMx->PSC = TIM2_5_1KHZ_PRESCALER;
-    TIMx->ARR = TIM2_5_1SEC_ARR;
+    bare_tim2_5_set(TIMx);      // Set prescaler and ARR
     TIMx->CCMR1 &= ~(0x7 << 4); // Clear OC1M
     TIMx->CCMR1 |= (0x6 << 4);  // OC1M = 110 (PMW mode 1)
     TIMx->CCMR1 |= (1 << 3);    // preload enable
