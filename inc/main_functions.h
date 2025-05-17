@@ -17,6 +17,7 @@
 #ifndef MAIN_FUNCTIONS_H_
 #define MAIN_FUNCTIONS_H_
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 

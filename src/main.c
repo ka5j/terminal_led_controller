@@ -13,6 +13,7 @@
  * bare-metal builds using a Makefile on VS Code (e.g., Raspberry Pi 5 toolchain).
  *******************************************************************************************/
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 

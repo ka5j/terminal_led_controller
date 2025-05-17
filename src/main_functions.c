@@ -11,6 +11,7 @@
  * actions (e.g., toggling PC5). All operations are performed using custom bare-metal drivers.
  *******************************************************************************************/
 
+#include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -107,7 +108,23 @@ void led1_process_cmd(const char *cmd)
 
 void led2_process_cmd(const char *cmd)
 {
-    /***********Incomplete************/
+    if (strncmp(cmd, "LED2 PWM ", 9) == 0)
+    {
+        uint8_t duty = (uint8_t)atoi(&cmd[9]);
+        if (duty <= 100 && duty >= 0)
+        {
+            bare_pwm_set_duty(TIM4, duty);
+            bare_usart_send_string("\nLED2 PWM MODIFIED\r");
+        }
+        else
+        {
+            bare_usart_send_string("\nINVALID PWM VALUE (0%-100%)\r");
+        }
+    }
+    else
+    {
+        bare_usart_send_string("\nUNKNOWN COMMAND\r");
+    }
 }
 
 void led3_process_cmd(const char *cmd)
