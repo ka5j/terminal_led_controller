@@ -34,6 +34,18 @@
 void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
 
 /**
+ * @brief  Configure usart terminal to start reading and writing
+ *
+ */
+void usart_terminal_init(void);
+
+/**
+ * @brief  Configure GPIO pin PC5 as output.
+ *
+ */
+void led1_init();
+
+/**
  * @brief  Application entry point.
  *
  * Initializes GPIOC Pin 8 as a digital output and configures the SysTick
@@ -46,10 +58,9 @@ int main(void)
 {
     program_status_led(GPIOC, GPIO_PIN8); // Initialize LED GPIO and start SysTick timer
 
-    bare_usart_init();
-    bare_usart_send_string("\r\n>> Press any key to start...\r\n");
-    bare_usart_read_char();
-    bare_usart_send_string("Hello, World!\r\n");
+    usart_terminal_init();
+
+    led1_init();
 
     while (1)
         ; // Main loop does nothing; toggling handled in SysTick ISR
@@ -75,6 +86,30 @@ void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
 
     // Configure SysTick to trigger an interrupt approximately every 1/12 second
     SysTick_Init(SYSTICK_1SEC_RELOAD_16MHZ / 12, SYSTICK_PROCESSOR_CLK, SYSTICK_ENABLE_INTERRUPT);
+}
+
+/**
+ * @brief  Configure usart terminal to start reading and writing
+ *
+ */
+void usart_terminal_init(void)
+{
+    bare_usart_init();
+    bare_usart_send_string("\r\n>> Press any key to connect to NUCLEO-STM32F446RE...\r\n");
+    bare_usart_read_char();
+    bare_usart_send_string("-CONNECTED-\r\n");
+}
+
+/**
+ * @brief  Configure GPIO pin PC5 as output.
+ *
+ */
+void led1_init()
+{
+    // Initialize PC5 as output (push-pull, low speed, no pull-up/down)
+    bare_gpio_init(GPIOC, GPIO_PIN5, GPIO_MODE_OUTPUT, GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
+
+    bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_SET);
 }
 
 /**
