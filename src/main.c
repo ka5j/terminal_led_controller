@@ -12,6 +12,7 @@
  *******************************************************************************************/
 
 #include <stdint.h>
+#include <string.h>
 #include "stm32f446re_addresses.h" // Memory base address definitions
 #include "rcc_registers.h"         // RCC register macros
 #include "gpio_registers.h"        // GPIO register macros
@@ -46,6 +47,13 @@ void usart_terminal_init(void);
 void led1_init();
 
 /**
+ * @brief  Configure GPIO pin PC5 as output.
+ *
+ * @param cmd String repersentation of command
+ */
+void process_cmd(const char *cmd);
+
+/**
  * @brief  Application entry point.
  *
  * Initializes GPIOC Pin 8 as a digital output and configures the SysTick
@@ -56,14 +64,33 @@ void led1_init();
  */
 int main(void)
 {
-    program_status_led(GPIOC, GPIO_PIN8); // Initialize LED GPIO and start SysTick timer
-
     usart_terminal_init();
+
+    program_status_led(GPIOC, GPIO_PIN8); // Initialize LED GPIO and start SysTick timer
 
     led1_init();
 
+    uint32_t CMD_BUFFER_SIZE = 64;
+    char cmd_buffer[CMD_BUFFER_SIZE];
+    uint8_t cmd_index = 0;
+
     while (1)
-        ; // Main loop does nothing; toggling handled in SysTick ISR
+    {
+        char c = bare_usart_read_char();
+        bare_usart_send_char(c);
+
+        if (c == '\r' || c == '\n')
+        {
+            cmd_buffer[cmd_index] = '\0';
+            process_cmd(cmd_buffer);
+            cmd_index = 0;
+            bare_usart_send_string("\r\n>");
+        }
+        else if (cmd_index < CMD_BUFFER_SIZE - 1)
+        {
+            cmd_buffer[cmd_index++] = c;
+        }
+    } // Main loop does nothing; toggling handled in SysTick ISR
 }
 
 /**
@@ -95,9 +122,8 @@ void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
 void usart_terminal_init(void)
 {
     bare_usart_init();
-    bare_usart_send_string("\r\n>> Press any key to connect to NUCLEO-STM32F446RE...\r\n");
-    bare_usart_read_char();
-    bare_usart_send_string("-CONNECTED-\r\n");
+    bare_usart_clear_screen();
+    bare_usart_send_string("STM32 Terminal ready. Type commands: \r\n>");
 }
 
 /**
@@ -108,8 +134,34 @@ void led1_init()
 {
     // Initialize PC5 as output (push-pull, low speed, no pull-up/down)
     bare_gpio_init(GPIOC, GPIO_PIN5, GPIO_MODE_OUTPUT, GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
+}
 
-    bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_SET);
+/**
+ * @brief  Configure GPIO pin PC5 as output.
+ *
+ * @param cmd String repersentation of command
+ */
+void process_cmd(const char *cmd)
+{
+    if (strcmp(cmd, "LED1 ON") == 0)
+    {
+        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_SET);
+        bare_usart_send_string("\nLED1 turned ON\r");
+    }
+    else if (strcmp(cmd, "LED1 OFF") == 0)
+    {
+        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_RESET);
+        bare_usart_send_string("\nLED1 turned OFF\r");
+    }
+    else if (strcmp(cmd, "LED1 TOGGLE") == 0)
+    {
+        bare_gpio_toggle(GPIOC, GPIO_PIN5);
+        bare_usart_send_string("\nLED1 TOGGLED\r");
+    }
+    else
+    {
+        bare_usart_send_string("\nUKNOWN COMMAND\r");
+    }
 }
 
 /**
