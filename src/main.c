@@ -1,175 +1,115 @@
 /*******************************************************************************************
  * @file    main.c
  * @author  ka5j
- * @brief   Bare-metal example: SysTick-based LED toggling on STM32F446RE (GPIOC Pin 8)
- * @version 1.0
+ * @brief   Bare-metal example: UART command terminal + SysTick-based LED toggling
+ * @version 1.1
  * @date    2025-05-16
  *
  * @details
- * This example demonstrates a minimal bare-metal system using custom register-level drivers
- * to blink an LED (PC8) using the SysTick timer interrupt. It assumes no HAL/CMSIS
- * dependency and is structured for portability in a VS Code + Makefile environment.
+ * This program demonstrates a register-level embedded system using the STM32F446RE.
+ * It toggles an LED (PC8) via SysTick timer interrupt and allows terminal-based
+ * user interaction via USART2. Commands entered through the UART interface are parsed
+ * and executed in real-time. The project uses no HAL or CMSIS and is designed for
+ * bare-metal builds using a Makefile on VS Code (e.g., Raspberry Pi 5 toolchain).
  *******************************************************************************************/
 
 #include <stdint.h>
 #include <string.h>
-#include "stm32f446re_addresses.h" // Memory base address definitions
-#include "rcc_registers.h"         // RCC register macros
-#include "gpio_registers.h"        // GPIO register macros
-#include "systick_registers.h"     // SysTick register macros
-#include "usart_registers.h"       // USART register macros
-#include "bare_systick.h"          // Bare-metal SysTick driver
-#include "bare_gpio.h"             // Bare-metal GPIO driver
-#include "bare_usart.h"            // Bare-metal USART driver
 
-/**
- * @brief  Configure GPIO pin as output and enable SysTick interrupt.
+#include "main_functions.h"
+#include "stm32f446re_addresses.h" // STM32 memory and base addresses
+#include "rcc_registers.h"         // RCC peripheral access macros
+#include "gpio_registers.h"        // GPIO register structure definitions
+#include "systick_registers.h"     // SysTick register access macros
+#include "usart_registers.h"       // USART register definitions
+#include "bare_systick.h"          // SysTick driver (bare-metal)
+#include "bare_gpio.h"             // GPIO driver (bare-metal)
+#include "bare_usart.h"            // USART2 driver (bare-metal)
+
+/*******************************************************************************************
+ * @brief   Configure PC8 as output and enable SysTick interrupt for LED blinking.
  *
- * Initializes GPIOC Pin with push-pull output configuration,
- * sets the output high initially, and configures the SysTick
- * timer to fire periodically (approximately every 83ms).
+ * @param   GPIOx Pointer to GPIO port (e.g., GPIOC)
+ * @param   pin   GPIO pin number (e.g., GPIO_PIN8)
  *
- * @param GPIOx   Pointer to GPIO peripheral (e.g., GPIOA, GPIOB, etc.)
- * @param pin     GPIO pin number (0-15)
- */
+ * @note    This function initializes the LED status pin and sets up SysTick to toggle
+ *          it periodically (approx. every 83ms). Used to indicate program activity.
+ *******************************************************************************************/
 void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin);
 
-/**
- * @brief  Configure usart terminal to start reading and writing
+/*******************************************************************************************
+ * @brief   Application entry point
  *
- */
-void usart_terminal_init(void);
-
-/**
- * @brief  Configure GPIO pin PC5 as output.
+ * @details
+ * - Initializes USART2 for serial terminal communication
+ * - Initializes PC8 as output and toggles it via SysTick interrupt
+ * - Enters an infinite loop waiting for user commands entered via UART
+ * - Commands are parsed and executed via `process_cmd()`
  *
- */
-void led1_init();
-
-/**
- * @brief  Configure GPIO pin PC5 as output.
- *
- * @param cmd String repersentation of command
- */
-void process_cmd(const char *cmd);
-
-/**
- * @brief  Application entry point.
- *
- * Initializes GPIOC Pin 8 as a digital output and configures the SysTick
- * timer to toggle the pin periodically. Intended as a sanity check for
- * GPIO + timer interrupt system on STM32F446RE.
- *
- * @return int (never returns)
- */
+ * @return  int  Always returns 0 (not used in bare-metal systems)
+ *******************************************************************************************/
 int main(void)
 {
+    // Initialize USART2 and print terminal header
     usart_terminal_init();
 
-    program_status_led(GPIOC, GPIO_PIN8); // Initialize LED GPIO and start SysTick timer
+    // Initialize PC8 LED and start periodic toggling via SysTick
+    program_status_led(GPIOC, GPIO_PIN8);
 
+    // Optional: Initialize an additional LED or user I/O
     led1_init();
 
-    uint32_t CMD_BUFFER_SIZE = 64;
+    // Buffer to store UART command input
     char cmd_buffer[CMD_BUFFER_SIZE];
     uint8_t cmd_index = 0;
 
+    // --- UART Command Processing Loop ---
     while (1)
     {
+        // Read one character from terminal
         char c = bare_usart_read_char();
+
+        // Echo character back to terminal
         bare_usart_send_char(c);
 
+        // On Enter key (CR or LF), terminate string and parse command
         if (c == '\r' || c == '\n')
         {
-            cmd_buffer[cmd_index] = '\0';
-            process_cmd(cmd_buffer);
-            cmd_index = 0;
-            bare_usart_send_string("\r\n>");
+            cmd_buffer[cmd_index] = '\0';     // Null-terminate command string
+            led1_process_cmd(cmd_buffer);     // Execute command
+            cmd_index = 0;                    // Reset buffer index
+            bare_usart_send_string("\r\n> "); // Prompt for next command
         }
         else if (cmd_index < CMD_BUFFER_SIZE - 1)
         {
+            // Store character into buffer
             cmd_buffer[cmd_index++] = c;
         }
-    } // Main loop does nothing; toggling handled in SysTick ISR
+    }
 }
 
-/**
- * @brief  Configure GPIO pin as output and enable SysTick interrupt.
+/*******************************************************************************************
+ * @brief   Configure GPIO pin and start SysTick timer for LED heartbeat.
  *
- * Initializes GPIOC Pin with push-pull output configuration,
- * sets the output high initially, and configures the SysTick
- * timer to fire periodically (approximately every 83ms).
- *
- * @param GPIOx   Pointer to GPIO peripheral (e.g., GPIOA, GPIOB, etc.)
- * @param pin     GPIO pin number (0-15)
- */
+ * @details
+ * - Initializes PC8 in push-pull output mode
+ * - Starts SysTick timer to fire approx. every 83ms
+ * - LED toggling is handled inside the SysTick ISR
+ *******************************************************************************************/
 void program_status_led(GPIO_TypeDef *GPIOx, GPIO_Pins_t pin)
 {
-    // Initialize PC8 as output (push-pull, low speed, no pull-up/down)
     bare_gpio_init(GPIOx, pin, GPIO_MODE_OUTPUT, GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
-
-    // Set PC8 high to turn on LED initially
-    bare_gpio_write(GPIOx, pin, GPIO_PIN_SET);
-
-    // Configure SysTick to trigger an interrupt approximately every 1/12 second
+    bare_gpio_write(GPIOx, pin, GPIO_PIN_SET); // Turn on LED
     SysTick_Init(SYSTICK_1SEC_RELOAD_16MHZ / 12, SYSTICK_PROCESSOR_CLK, SYSTICK_ENABLE_INTERRUPT);
 }
 
-/**
- * @brief  Configure usart terminal to start reading and writing
+/*******************************************************************************************
+ * @brief   SysTick interrupt handler
  *
- */
-void usart_terminal_init(void)
-{
-    bare_usart_init();
-    bare_usart_clear_screen();
-    bare_usart_send_string("STM32 Terminal ready. Type commands: \r\n>");
-}
-
-/**
- * @brief  Configure GPIO pin PC5 as output.
- *
- */
-void led1_init()
-{
-    // Initialize PC5 as output (push-pull, low speed, no pull-up/down)
-    bare_gpio_init(GPIOC, GPIO_PIN5, GPIO_MODE_OUTPUT, GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
-}
-
-/**
- * @brief  Configure GPIO pin PC5 as output.
- *
- * @param cmd String repersentation of command
- */
-void process_cmd(const char *cmd)
-{
-    if (strcmp(cmd, "LED1 ON") == 0)
-    {
-        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_SET);
-        bare_usart_send_string("\nLED1 turned ON\r");
-    }
-    else if (strcmp(cmd, "LED1 OFF") == 0)
-    {
-        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_RESET);
-        bare_usart_send_string("\nLED1 turned OFF\r");
-    }
-    else if (strcmp(cmd, "LED1 TOGGLE") == 0)
-    {
-        bare_gpio_toggle(GPIOC, GPIO_PIN5);
-        bare_usart_send_string("\nLED1 TOGGLED\r");
-    }
-    else
-    {
-        bare_usart_send_string("\nUKNOWN COMMAND\r");
-    }
-}
-
-/**
- * @brief  SysTick Interrupt Service Routine (ISR).
- *
- * Toggles the output state of PC8 every time the SysTick interrupt fires.
- * This creates a periodic LED blink without requiring active polling.
- */
+ * @details
+ * Called every time the SysTick timer expires (approx. 83ms interval).
+ * Toggles PC8 to blink LED as a program-alive indicator.
+ *******************************************************************************************/
 void SysTick_Handler(void)
 {
     bare_gpio_toggle(GPIOC, GPIO_PIN8);

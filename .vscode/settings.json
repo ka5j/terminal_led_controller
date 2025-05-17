@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "bare_systick.h": "c",
+        "usart_registers.h": "c"
+    }
+}

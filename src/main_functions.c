@@ -1,0 +1,85 @@
+/*******************************************************************************************
+ * @file    main_functions.c
+ * @author  ka5j
+ * @brief   Implementation of terminal I/O and command parsing for STM32F446RE
+ * @version 1.1
+ * @date    2025-05-16
+ *
+ * @details
+ * This source file contains initialization routines for the USART2 terminal and GPIO LED,
+ * as well as a command parser that interprets user input from UART and maps it to hardware
+ * actions (e.g., toggling PC5). All operations are performed using custom bare-metal drivers.
+ *******************************************************************************************/
+
+#include <stdint.h>
+#include <string.h>
+
+#include "stm32f446re_addresses.h" // STM32 base addresses
+#include "rcc_registers.h"         // RCC macros
+#include "gpio_registers.h"        // GPIO register structure
+#include "usart_registers.h"       // USART register structure
+#include "bare_systick.h"          // Bare-metal SysTick interface
+#include "bare_gpio.h"             // Bare-metal GPIO driver
+#include "bare_usart.h"            // Bare-metal USART driver
+
+/*******************************************************************************************
+ * @brief   Initialize USART terminal interface
+ *
+ * @details
+ * Sets up USART2 at 115200 baud for UART communication and clears the screen.
+ * Prints a startup header to the connected terminal and displays an input prompt.
+ *******************************************************************************************/
+void usart_terminal_init(void)
+{
+    bare_usart_init();         // Initialize USART2 on PA2/PA3
+    bare_usart_clear_screen(); // Clear terminal (ANSI escape)
+    bare_usart_send_string("STM32 Terminal ready. Type commands:\r\n> ");
+}
+
+/*******************************************************************************************
+ * @brief   Initialize PC5 for user-controlled LED output
+ *
+ * @details
+ * Configures GPIOC Pin 5 as push-pull output with low speed and no pull resistors.
+ * This pin is toggled by UART commands such as "LED1 ON" or "LED1 TOGGLE".
+ *******************************************************************************************/
+void led1_init(void)
+{
+    bare_gpio_init(GPIOC, GPIO_PIN5, GPIO_MODE_OUTPUT,
+                   GPIO_OTYPE_PP, GPIO_SPEED_LOW, GPIO_NOPULL);
+}
+
+/*******************************************************************************************
+ * @brief   Parse and execute UART commands
+ *
+ * @param   cmd   Null-terminated command string from terminal input
+ *
+ * @details
+ * Supports commands to control GPIOC Pin 5 (user LED):
+ * - "LED1 ON"      → Sets PC5 high
+ * - "LED1 OFF"     → Sets PC5 low
+ * - "LED1 TOGGLE"  → Inverts PC5
+ * Unrecognized commands print a default error message.
+ *******************************************************************************************/
+void led1_process_cmd(const char *cmd)
+{
+    if (strcmp(cmd, "LED1 ON") == 0)
+    {
+        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_SET);
+        bare_usart_send_string("\nLED1 turned ON\r");
+    }
+    else if (strcmp(cmd, "LED1 OFF") == 0)
+    {
+        bare_gpio_write(GPIOC, GPIO_PIN5, GPIO_PIN_RESET);
+        bare_usart_send_string("\nLED1 turned OFF\r");
+    }
+    else if (strcmp(cmd, "LED1 TOGGLE") == 0)
+    {
+        bare_gpio_toggle(GPIOC, GPIO_PIN5);
+        bare_usart_send_string("\nLED1 TOGGLED\r");
+    }
+    else
+    {
+        bare_usart_send_string("\nUNKNOWN COMMAND\r");
+    }
+}
